@@ -1,63 +1,142 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Controller;
 
 class TicketsController extends AppController
 {
-   public function index()
-{
-    $search = $this->request->getQuery('search');
-    $status = $this->request->getQuery('status');
-    $priority = $this->request->getQuery('priority');
+    // List all tickets with search and filters
+    public function index()
+    {
+        $search = $this->request->getQuery('search');
+        $status = $this->request->getQuery('status');
+        $priority = $this->request->getQuery('priority');
 
-    $query = $this->Tickets->find()
-        ->contain(['Projects']);
+        $query = $this->Tickets->find()
+            ->contain(['Projects']);
 
-    if (!empty($search)) {
-        $query->where([
-            'OR' => [
-                'Tickets.subject LIKE' => '%' . $search . '%',
-                'Tickets.customer_name LIKE' => '%' . $search . '%',
-            ]
-        ]);
+        if (!empty($search)) {
+            $query->where([
+                'OR' => [
+                    'Tickets.subject LIKE' => '%' . $search . '%',
+                    'Tickets.customer_name LIKE' => '%' . $search . '%',
+                ]
+            ]);
+        }
+
+        if (!empty($status)) {
+            $query->where([
+                'Tickets.status' => $status
+            ]);
+        }
+
+        if (!empty($priority)) {
+            $query->where([
+                'Tickets.priority' => $priority
+            ]);
+        }
+
+        $tickets = $this->paginate($query);
+
+        $this->set(compact(
+            'tickets',
+            'search',
+            'status',
+            'priority'
+        ));
     }
 
-    if (!empty($status)) {
-        $query->where([
-            'Tickets.status' => $status
-        ]);
-    }
-
-    if (!empty($priority)) {
-        $query->where([
-            'Tickets.priority' => $priority
-        ]);
-    }
-
-    $tickets = $this->paginate($query);
-
-    $this->set(compact(
-        'tickets',
-        'search',
-        'status',
-        'priority'
-    ));
-}
-
+    // View ticket details and notes
     public function view($id = null)
     {
-        $ticket = $this->Tickets->get($id, contain: ['Notes']);
+        $ticket = $this->Tickets->get(
+            $id,
+            contain: ['Notes']
+        );
 
         $this->set(compact('ticket'));
     }
 
+    // Add a note using jQuery AJAX
+    public function addNote($id = null)
+    {
+        // Allow POST requests only
+        $this->request->allowMethod(['post']);
+
+        // Get Notes table
+        $notesTable = $this->fetchTable('Notes');
+
+        // Check if the ticket exists
+        if (
+            $id === null ||
+            !$this->Tickets->exists(['id' => $id])
+        ) {
+            return $this->response
+                ->withStatus(404)
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'success' => false,
+                    'message' => 'Ticket not found'
+                ]));
+        }
+
+        // Receive note from AJAX
+        $text = trim(
+            (string)$this->request->getData('note', '')
+        );
+
+        // Validate note
+        if ($text === '') {
+            return $this->response
+                ->withStatus(422)
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'success' => false,
+                    'message' => 'Note cannot be empty'
+                ]));
+        }
+
+        // Create a new note
+        $note = $notesTable->newEntity([
+            'ticket_id' => $id,
+            'note' => $text
+        ]);
+
+        // Save note to database
+        if ($notesTable->save($note)) {
+            return $this->response
+                ->withType('application/json')
+                ->withStringBody(json_encode([
+                    'success' => true,
+                    'message' => 'Note added successfully',
+                    'note' => [
+                        'id' => $note->id,
+                        'note' => $note->note,
+                        'created' => $note->created
+                            ? (string)$note->created
+                            : ''
+                    ]
+                ]));
+        }
+
+        // Save failed
+        return $this->response
+            ->withStatus(422)
+            ->withType('application/json')
+            ->withStringBody(json_encode([
+                'success' => false,
+                'message' => 'Failed to save note'
+            ]));
+    }
+
+    // Add new ticket
     public function add()
     {
         $ticket = $this->Tickets->newEmptyEntity();
 
-        $projects = $this->Tickets->Projects->find('list')->all();
+        $projects = $this->Tickets->Projects
+            ->find('list')
+            ->all();
 
         if ($this->request->is('post')) {
             $ticket = $this->Tickets->patchEntity(
@@ -66,9 +145,13 @@ class TicketsController extends AppController
             );
 
             if ($this->Tickets->save($ticket)) {
-                $this->Flash->success(__('The ticket has been saved.'));
+                $this->Flash->success(
+                    __('The ticket has been saved.')
+                );
 
-                return $this->redirect(['action' => 'index']);
+                return $this->redirect([
+                    'action' => 'index'
+                ]);
             }
 
             $this->Flash->error(
@@ -79,23 +162,29 @@ class TicketsController extends AppController
         $this->set(compact('ticket', 'projects'));
     }
 
+    // Edit ticket
     public function edit($id = null)
     {
         $ticket = $this->Tickets->get($id);
 
-        $projects = $this->Tickets->Projects->find('list')->all();
+        $projects = $this->Tickets->Projects
+            ->find('list')
+            ->all();
 
         if ($this->request->is(['patch', 'post', 'put'])) {
-
             $ticket = $this->Tickets->patchEntity(
                 $ticket,
                 $this->request->getData()
             );
 
             if ($this->Tickets->save($ticket)) {
-                $this->Flash->success(__('The ticket has been saved.'));
+                $this->Flash->success(
+                    __('The ticket has been saved.')
+                );
 
-                return $this->redirect(['action' => 'index']);
+                return $this->redirect([
+                    'action' => 'index'
+                ]);
             }
 
             $this->Flash->error(
@@ -106,6 +195,7 @@ class TicketsController extends AppController
         $this->set(compact('ticket', 'projects'));
     }
 
+    // Delete ticket
     public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
@@ -113,13 +203,17 @@ class TicketsController extends AppController
         $ticket = $this->Tickets->get($id);
 
         if ($this->Tickets->delete($ticket)) {
-            $this->Flash->success(__('The ticket has been deleted.'));
+            $this->Flash->success(
+                __('The ticket has been deleted.')
+            );
         } else {
             $this->Flash->error(
                 __('The ticket could not be deleted. Please, try again.')
             );
         }
 
-        return $this->redirect(['action' => 'index']);
+        return $this->redirect([
+            'action' => 'index'
+        ]);
     }
 }

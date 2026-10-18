@@ -18,6 +18,9 @@ class NotesTable extends Table
         $this->belongsTo('Tickets', [
             'foreignKey' => 'ticket_id',
         ]);
+
+
+        $this->addBehavior('Timestamp');
     }
 
     public function validationDefault(Validator $validator): Validator
