@@ -1,8 +1,13 @@
 <?php
+
 /**
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\Ticket $ticket
  */
+
+use Cake\Core\Configure;
+
+$siteKey = Configure::read('Recaptcha.siteKey');
 ?>
 
 <div class="row">
@@ -21,7 +26,10 @@
     <div class="column column-80">
         <div class="tickets form content">
 
-            <?= $this->Form->create($ticket) ?>
+            <?= $this->Form->create($ticket, [
+                'id' => 'add-ticket-form',
+                'type' => 'file'
+            ]) ?>
 
             <fieldset>
                 <legend><?= __('Add Ticket') ?></legend>
@@ -57,15 +65,88 @@
                     ]
                 ]);
 
-                echo $this->Form->control('attachment');
+                echo $this->Form->control('attachment', [
+                    'type' => 'file',
+                    'accept' => '.jpg,.png,.pdf,.doc,.docx',
+                
+                ]);
+
+                echo $this->Form->hidden('recaptcha_token', [
+                    'id' => 'recaptcha-token',
+                    'value' => ''
+                ]);
 
                 ?>
             </fieldset>
 
-            <?= $this->Form->button(__('Submit')) ?>
+            <?= $this->Form->button(__('Submit'), [
+                'id' => 'submit-ticket',
+                'type' => 'submit'
+            ]) ?>
 
             <?= $this->Form->end() ?>
 
         </div>
     </div>
 </div>
+
+
+<script
+    src="https://www.google.com/recaptcha/api.js?render=<?= h($siteKey) ?>">
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const form = document.getElementById('add-ticket-form');
+        const tokenInput = document.getElementById('recaptcha-token');
+        const submitButton = document.getElementById('submit-ticket');
+
+        form.addEventListener('submit', function(event) {
+
+            event.preventDefault();
+
+         
+            if (submitButton.disabled) {
+                return;
+            }
+
+            submitButton.disabled = true;
+
+            if (typeof grecaptcha === 'undefined') {
+                alert('reCAPTCHA could not load. Please refresh.');
+                submitButton.disabled = false;
+                return;
+            }
+
+            grecaptcha.ready(function() {
+
+                grecaptcha.execute(
+                        <?= json_encode($siteKey) ?>, {
+                            action: 'add_ticket'
+                        }
+                    )
+                    .then(function(token) {
+
+                        // Store token in hidden field
+                        tokenInput.value = token;
+
+                        // Submit form to CakePHP controller
+                        HTMLFormElement.prototype.submit.call(form);
+
+                    })
+                    .catch(function(error) {
+
+                        console.error('reCAPTCHA error:', error);
+
+                        alert('CAPTCHA verification failed. Please try again.');
+
+                        submitButton.disabled = false;
+                    });
+
+            });
+
+        });
+
+    });
+</script>

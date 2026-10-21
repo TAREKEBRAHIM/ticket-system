@@ -105,7 +105,7 @@ class TicketsTable extends Table
         $validator
             ->scalar('attachment')
             ->maxLength('attachment', 255)
-            ->allowEmptyFile('attachment');
+            ->notEmptyString('attachment');
 
         return $validator;
     }
