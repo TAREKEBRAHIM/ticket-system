@@ -1,5 +1,5 @@
+```php
 <?php
-
 /**
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\Ticket $ticket
@@ -10,90 +10,179 @@ use Cake\Core\Configure;
 $siteKey = Configure::read('Recaptcha.siteKey');
 ?>
 
-<div class="row">
-    <aside class="column">
-        <div class="side-nav">
-            <h4 class="heading"><?= __('Actions') ?></h4>
+<div class="container-fluid">
 
+    <!-- Page Header -->
+    <div class="row mb-3 align-items-center">
+        <div class="col-sm-6">
+            <h3 class="mb-0">Add Ticket</h3>
+        </div>
+
+        <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
             <?= $this->Html->link(
-                __('List Tickets'),
+                '<i class="bi bi-arrow-left me-1"></i> List Tickets',
                 ['action' => 'index'],
-                ['class' => 'side-nav-item']
+                [
+                    'class' => 'btn btn-outline-secondary',
+                    'escape' => false
+                ]
             ) ?>
         </div>
-    </aside>
+    </div>
 
-    <div class="column column-80">
-        <div class="tickets form content">
+    <!-- Add Ticket Form -->
+    <div class="row">
+        <div class="col-12 col-xl-10">
 
-            <?= $this->Form->create($ticket, [
-                'id' => 'add-ticket-form',
-                'type' => 'file'
-            ]) ?>
+            <div class="card card-primary card-outline">
 
-            <fieldset>
-                <legend><?= __('Add Ticket') ?></legend>
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="bi bi-ticket-perforated me-1"></i>
+                        Ticket Information
+                    </h3>
+                </div>
 
-                <?php
+                <div class="card-body">
 
-                echo $this->Form->control('project_id', [
-                    'options' => $projects,
-                    'empty' => '-- Select Project --'
-                ]);
+                    <?= $this->Form->create($ticket, [
+                        'id' => 'add-ticket-form',
+                        'type' => 'file'
+                    ]) ?>
 
-                echo $this->Form->control('subject');
+                    <div class="row g-3">
 
-                echo $this->Form->control('customer_name');
+                        <!-- Project -->
+                        <div class="col-12 col-md-6">
+                            <?= $this->Form->control('project_id', [
+                                'label' => 'Project',
+                                'options' => $projects,
+                                'empty' => '-- Select Project --',
+                                'class' => 'form-select'
+                            ]) ?>
+                        </div>
 
-                echo $this->Form->control('customer_email');
+                        <!-- Subject -->
+                        <div class="col-12 col-md-6">
+                            <?= $this->Form->control('subject', [
+                                'label' => 'Subject',
+                                'class' => 'form-control',
+                                'placeholder' => 'Enter ticket subject'
+                            ]) ?>
+                        </div>
 
-                echo $this->Form->control('message');
+                        <!-- Customer Name -->
+                        <div class="col-12 col-md-6">
+                            <?= $this->Form->control('customer_name', [
+                                'label' => 'Customer Name',
+                                'class' => 'form-control',
+                                'placeholder' => 'Enter customer name'
+                            ]) ?>
+                        </div>
 
-                echo $this->Form->control('priority', [
-                    'options' => [
-                        'Low' => 'Low',
-                        'Medium' => 'Medium',
-                        'High' => 'High'
-                    ]
-                ]);
+                        <!-- Customer Email -->
+                        <div class="col-12 col-md-6">
+                            <?= $this->Form->control('customer_email', [
+                                'label' => 'Customer Email',
+                                'class' => 'form-control',
+                                'placeholder' => 'Enter customer email'
+                            ]) ?>
+                        </div>
 
-                echo $this->Form->control('status', [
-                    'options' => [
-                        'Open' => 'Open',
-                        'In Progress' => 'In Progress',
-                        'Closed' => 'Closed'
-                    ]
-                ]);
+                        <!-- Message -->
+                        <div class="col-12">
+                            <?= $this->Form->control('message', [
+                                'label' => 'Message',
+                                'type' => 'textarea',
+                                'class' => 'form-control',
+                                'rows' => 5,
+                                'placeholder' => 'Describe the issue'
+                            ]) ?>
+                        </div>
 
-                echo $this->Form->control('attachment', [
-                    'type' => 'file',
-                    'accept' => '.jpg,.png,.pdf,.doc,.docx',
-                
-                ]);
+                        <!-- Priority -->
+                        <div class="col-12 col-md-6">
+                            <?= $this->Form->control('priority', [
+                                'label' => 'Priority',
+                                'options' => [
+                                    'Low' => 'Low',
+                                    'Medium' => 'Medium',
+                                    'High' => 'High'
+                                ],
+                                'class' => 'form-select'
+                            ]) ?>
+                        </div>
 
-                echo $this->Form->hidden('recaptcha_token', [
-                    'id' => 'recaptcha-token',
-                    'value' => ''
-                ]);
+                        <!-- Status -->
+                        <div class="col-12 col-md-6">
+                            <?= $this->Form->control('status', [
+                                'label' => 'Status',
+                                'options' => [
+                                    'Open' => 'Open',
+                                    'In Progress' => 'In Progress',
+                                    'Closed' => 'Closed'
+                                ],
+                                'class' => 'form-select'
+                            ]) ?>
+                        </div>
 
-                ?>
-            </fieldset>
+                        <!-- Attachment -->
+                        <div class="col-12">
+                            <?= $this->Form->control('attachment', [
+                                'type' => 'file',
+                                'label' => 'Attachment',
+                                'accept' => '.jpg,.png,.pdf,.doc,.docx',
+                                'class' => 'form-control'
+                            ]) ?>
 
-            <?= $this->Form->button(__('Submit'), [
-                'id' => 'submit-ticket',
-                'type' => 'submit'
-            ]) ?>
+                            <div class="form-text">
+                                Allowed file types: JPG, PNG, PDF, DOC and DOCX.
+                            </div>
+                        </div>
 
-            <?= $this->Form->end() ?>
+                    </div>
+
+                    <!-- reCAPTCHA Token -->
+                    <?= $this->Form->hidden('recaptcha_token', [
+                        'id' => 'recaptcha-token',
+                        'value' => ''
+                    ]) ?>
+
+                    <div class="border-top mt-4 pt-3">
+                        <div class="d-flex flex-wrap gap-2">
+
+                            <?= $this->Form->button(
+                                '<i class="bi bi-check-circle me-1"></i> Submit Ticket',
+                                [
+                                    'id' => 'submit-ticket',
+                                    'type' => 'submit',
+                                    'class' => 'btn btn-primary',
+                                    'escapeTitle' => false
+                                ]
+                            ) ?>
+
+                            <?= $this->Html->link(
+                                'Cancel',
+                                ['action' => 'index'],
+                                ['class' => 'btn btn-outline-secondary']
+                            ) ?>
+
+                        </div>
+                    </div>
+
+                    <?= $this->Form->end() ?>
+
+                </div>
+
+            </div>
 
         </div>
     </div>
+
 </div>
 
-
-<script
-    src="https://www.google.com/recaptcha/api.js?render=<?= h($siteKey) ?>">
-</script>
+<!-- Google reCAPTCHA v3 -->
+<script src="https://www.google.com/recaptcha/api.js?render=<?= h($siteKey) ?>"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -102,11 +191,14 @@ $siteKey = Configure::read('Recaptcha.siteKey');
         const tokenInput = document.getElementById('recaptcha-token');
         const submitButton = document.getElementById('submit-ticket');
 
+        if (!form || !tokenInput || !submitButton) {
+            return;
+        }
+
         form.addEventListener('submit', function(event) {
 
             event.preventDefault();
 
-         
             if (submitButton.disabled) {
                 return;
             }
@@ -122,27 +214,28 @@ $siteKey = Configure::read('Recaptcha.siteKey');
             grecaptcha.ready(function() {
 
                 grecaptcha.execute(
-                        <?= json_encode($siteKey) ?>, {
-                            action: 'add_ticket'
-                        }
-                    )
-                    .then(function(token) {
+                    <?= json_encode($siteKey) ?>,
+                    {
+                        action: 'add_ticket'
+                    }
+                )
+                .then(function(token) {
 
-                        // Store token in hidden field
-                        tokenInput.value = token;
+                    // Store token in hidden field
+                    tokenInput.value = token;
 
-                        // Submit form to CakePHP controller
-                        HTMLFormElement.prototype.submit.call(form);
+                    // Submit form to CakePHP controller
+                    HTMLFormElement.prototype.submit.call(form);
 
-                    })
-                    .catch(function(error) {
+                })
+                .catch(function(error) {
 
-                        console.error('reCAPTCHA error:', error);
+                    console.error('reCAPTCHA error:', error);
 
-                        alert('CAPTCHA verification failed. Please try again.');
+                    alert('CAPTCHA verification failed. Please try again.');
 
-                        submitButton.disabled = false;
-                    });
+                    submitButton.disabled = false;
+                });
 
             });
 
@@ -150,3 +243,4 @@ $siteKey = Configure::read('Recaptcha.siteKey');
 
     });
 </script>
+```

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Psr\Http\Message\UploadedFileInterface;
+
 use Cake\Core\Configure;
 use Cake\Http\Client;
 
@@ -63,16 +63,16 @@ class TicketsController extends AppController
         $this->set(compact('ticket'));
     }
 
-    // Add a note using jQuery AJAX
+    
     public function addNote($id = null)
     {
-        // Allow POST requests only
+      
         $this->request->allowMethod(['post']);
 
-        // Get Notes table
+        
         $notesTable = $this->fetchTable('Notes');
 
-        // Check if the ticket exists
+      
         if (
             $id === null ||
             !$this->Tickets->exists(['id' => $id])
@@ -86,12 +86,12 @@ class TicketsController extends AppController
                 ]));
         }
 
-        // Receive note from AJAX
+       
         $text = trim(
             (string)$this->request->getData('note', '')
         );
 
-        // Validate note
+      
         if ($text === '') {
             return $this->response
                 ->withStatus(422)
@@ -102,13 +102,13 @@ class TicketsController extends AppController
                 ]));
         }
 
-        // Create a new note
+    
         $note = $notesTable->newEntity([
             'ticket_id' => $id,
             'note' => $text
         ]);
 
-        // Save note to database
+        
         if ($notesTable->save($note)) {
             return $this->response
                 ->withType('application/json')
@@ -125,7 +125,7 @@ class TicketsController extends AppController
                 ]));
         }
 
-        // Save failed
+       
         return $this->response
             ->withStatus(422)
             ->withType('application/json')
@@ -135,26 +135,24 @@ class TicketsController extends AppController
             ]));
     }
 
-    // Add new ticket
-
     // Add new ticket with Google reCAPTCHA v3
     public function add()
     {
         $ticket = $this->Tickets->newEmptyEntity();
 
-        // Get projects for dropdown
+      
         $projects = $this->Tickets->Projects
             ->find('list')
             ->all();
 
         if ($this->request->is('post')) {
 
-            // 1. Get CAPTCHA token from form
+        
             $token = $this->request->getData('recaptcha_token');
 
             $captchaValid = false;
 
-            // 2. Make sure token exists
+           
             if (is_string($token) && $token !== '') {
 
                 $secretKey = Configure::read('Recaptcha.secretKey');
@@ -162,7 +160,7 @@ class TicketsController extends AppController
 
                 try {
 
-                    // 3. Send CAPTCHA token to Google
+                    
                     $http = new Client([
                         'timeout' => 10
                     ]);
@@ -177,7 +175,7 @@ class TicketsController extends AppController
 
                     $result = $response->getJson();
 
-                    // 4. Check Google's response
+                  
                     $captchaValid =
                         $response->isOk()
                         && is_array($result)
@@ -194,7 +192,7 @@ class TicketsController extends AppController
                 }
             }
 
-            // 5. Reject ticket if CAPTCHA failed
+           
             if (!$captchaValid) {
 
                 $this->Flash->error(
@@ -207,7 +205,7 @@ class TicketsController extends AppController
 
                 unset($data['recaptcha_token']);
 
-                // Get uploaded file
+
                 $file = $data['attachment'] ?? null;
                 unset($data['attachment']);
 
@@ -221,7 +219,7 @@ class TicketsController extends AppController
 
                     $allowed = ['jpg', 'png', 'pdf', 'doc', 'docx'];
 
-                    // Validate file type
+            
                     if (!in_array($extension, $allowed, true)) {
                         $this->Flash->error('Invalid file type.');
                         return;
